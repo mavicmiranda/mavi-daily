@@ -2,11 +2,8 @@ import { useState } from 'react'
 import type { Daily, Answers, Question } from '../types'
 import { QUESTIONS, SECTION_LABELS } from '../lib/data'
 import { supabase } from '../lib/supabase'
+import { localToday, entryDay } from '../lib/utils'
 import Summary from './Summary'
-
-function todayKey() {
-  return new Date().toISOString().split('T')[0]
-}
 
 // ── Question card ────────────────────────────────────────────────────────────
 
@@ -90,9 +87,10 @@ export default function DailyTab({ entries, userId, onSaved, onGoToDash, showToa
   const [completed, setCompleted] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  const today = localToday()
   const alreadyDone =
-    entries.some(e => (e.date || e.created_at?.split('T')[0]) === todayKey()) ||
-    localStorage.getItem('daily_last') === todayKey()
+    entries.some(e => entryDay(e.date, e.created_at) === today) ||
+    localStorage.getItem('daily_last') === today
 
   const activeQs = QUESTIONS.filter(q => {
     if (!q.skip_if) return true
@@ -121,16 +119,16 @@ export default function DailyTab({ entries, userId, onSaved, onGoToDash, showToa
 
   const finish = async () => {
     setSaving(true)
-    const record = { date: todayKey(), user_id: userId, ...answers }
+    const record = { date: localToday(), user_id: userId, ...answers }
     const { error } = await supabase.from('dailies').insert([record])
     setSaving(false)
     if (error) {
       showToast('Erro ao salvar: ' + error.message, 'error')
       return
     }
-    localStorage.setItem('daily_last', todayKey())
+    localStorage.setItem('daily_last', localToday())
     const last = localStorage.getItem('daily_streak_last')
-    const today = todayKey()
+    const today = localToday()
     const yest = new Date(); yest.setDate(yest.getDate() - 1)
     const yKey = yest.toISOString().split('T')[0]
     if (last !== today) {

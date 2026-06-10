@@ -1,13 +1,10 @@
 import { useMemo } from 'react'
 import type { Daily } from '../types'
 import { QUOTES } from '../lib/data'
+import { localToday, entryDay } from '../lib/utils'
 
 const QUOTE = QUOTES[Math.floor(Math.random() * QUOTES.length)]
 const DAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-
-function todayKey() {
-  return new Date().toISOString().split('T')[0]
-}
 
 function greeting() {
   const h = new Date().getHours()
@@ -20,19 +17,19 @@ interface Props {
 }
 
 export default function Dashboard({ entries, onGoToDaily }: Props) {
-  const today = todayKey()
-  const doneToday = entries.some(e => (e.date || e.created_at?.split('T')[0]) === today)
+  const today = localToday()
+  const doneToday = entries.some(e => entryDay(e.date, e.created_at) === today)
 
   const weekDots = useMemo(() => {
     const now = new Date()
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(now)
       d.setDate(d.getDate() - (6 - i))
-      const key = d.toISOString().split('T')[0]
+      const key = d.toLocaleDateString('sv')
       return {
         key,
         day: DAY_NAMES[d.getDay()],
-        done: entries.some(e => (e.date || e.created_at?.split('T')[0]) === key),
+        done: entries.some(e => entryDay(e.date, e.created_at) === key),
         isToday: key === today,
       }
     })
