@@ -4,7 +4,7 @@ export default function Config() {
       <div className="config-card">
         <div className="config-title">Conexão Supabase</div>
         <div className="config-desc">
-          Suas dailies são salvas automaticamente na nuvem e protegidas por autenticação.
+          Suas dailies são salvas na nuvem e isoladas por usuário.
         </div>
         <div style={{ fontSize: '13px', color: 'var(--green)' }}>
           ✓ Conectado — yydexbzvucnnzirmdxws.supabase.co
@@ -12,35 +12,25 @@ export default function Config() {
       </div>
 
       <div className="config-card">
-        <div className="config-title">Atualizar RLS — execute no Supabase SQL Editor</div>
+        <div className="config-title">⚠️ Execute este SQL no Supabase</div>
         <div className="config-desc">
-          Rode isso para garantir que apenas usuários autenticados acessem os dados.
+          Adiciona isolamento por usuário e bloqueia novos cadastros.
         </div>
-        <pre>{`-- Remove a política antiga e cria uma segura
+        <pre>{`-- 1. Adiciona coluna user_id à tabela
+alter table dailies
+  add column if not exists user_id uuid references auth.users(id);
+
+-- 2. Remove política antiga e cria uma isolada por usuário
 drop policy if exists "allow all" on dailies;
+drop policy if exists "authenticated only" on dailies;
 
-create policy "authenticated only" on dailies
+create policy "own data only" on dailies
   for all
-  using (auth.role() = 'authenticated')
-  with check (auth.role() = 'authenticated');`}</pre>
-      </div>
-
-      <div className="config-card">
-        <div className="config-title">Script SQL inicial (caso ainda não tenha rodado)</div>
-        <pre>{`create table if not exists dailies (
-  id uuid default gen_random_uuid() primary key,
-  created_at timestamptz default now(),
-  date date not null,
-  mood text, energia int,
-  estudou text, estudo_min int,
-  praticou text, aprendizado text, duvida text, amanha text,
-  academia boolean, academia_min int,
-  mba text,
-  leitura text, leitura_pag int,
-  lazer text,
-  sono_h numeric, bloqueio text
-);
-alter table dailies enable row level security;`}</pre>
+  using  (auth.uid() = user_id)
+  with check (auth.uid() = user_id);`}</pre>
+        <div className="config-desc" style={{ marginTop: '12px', marginBottom: 0 }}>
+          Depois vá em <strong>Authentication → Settings</strong> e desative <strong>"Enable sign ups"</strong> para ninguém mais criar conta.
+        </div>
       </div>
     </div>
   )

@@ -78,12 +78,13 @@ function QuestionCard({ question: q, answers, setAnswer }: CardProps) {
 
 interface Props {
   entries: Daily[]
+  userId: string
   onSaved: () => void
   onGoToDash: () => void
   showToast: (msg: string, type?: 'success' | 'error' | '') => void
 }
 
-export default function DailyTab({ entries, onSaved, onGoToDash, showToast }: Props) {
+export default function DailyTab({ entries, userId, onSaved, onGoToDash, showToast }: Props) {
   const [answers, setAnswers] = useState<Answers>({})
   const [currentIdx, setCurrentIdx] = useState(0)
   const [completed, setCompleted] = useState(false)
@@ -120,7 +121,7 @@ export default function DailyTab({ entries, onSaved, onGoToDash, showToast }: Pr
 
   const finish = async () => {
     setSaving(true)
-    const record = { date: todayKey(), ...answers }
+    const record = { date: todayKey(), user_id: userId, ...answers }
     const { error } = await supabase.from('dailies').insert([record])
     setSaving(false)
     if (error) {

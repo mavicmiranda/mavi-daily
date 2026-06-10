@@ -73,6 +73,7 @@ export default function App() {
         {tab === 'daily' && (
           <DailyTab
             entries={entries}
+            userId={session.user.id}
             onSaved={onDailySaved}
             onGoToDash={() => setTab('dash')}
             showToast={showToast}
